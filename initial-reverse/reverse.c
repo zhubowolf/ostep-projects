@@ -40,7 +40,7 @@ void insert(Node **head, Node *node)
     else
     {
         node->next = *head;
-        (*head)->next = node;
+        (*head) = node;
     }
 }
 
@@ -51,10 +51,8 @@ void show(Node *head, FILE *stream)
         return;
     }
     Node *p = head;
-    // fprintf(stream, "in output\n");
     while (p != NULL)
     {
-        // fprintf(stream, "in output\n");
         fprintf(stream, "%s", p->line);
         p = p->next;
     }
@@ -62,18 +60,15 @@ void show(Node *head, FILE *stream)
 
 void clear(Node **node)
 {
-    if (*node == NULL)
+    while (*node != NULL)
     {
-        return;
+        if ((*node)->line != NULL)
+        {
+            free((*node)->line);
+            (*node)->line = NULL;
+        }
+        (*node) = (*node)->next;
     }
-    if ((*node)->line != NULL)
-    {
-        free((*node)->line);
-        (*node)->line = NULL;
-    }
-    clear(&((*node)->next));
-    (*node)->next = NULL;
-    *node = NULL;
 }
 
 int main(int argc, char const *argv[])
@@ -89,8 +84,13 @@ int main(int argc, char const *argv[])
     {
         while ((ret = getline(&line, &n, stdin)) != -1)
         {
-            fprintf(stdout, "%s", line);
+            node = create(line);
+            insert(&head, node);
+            line = NULL;
+            n = 0;
         }
+        show(head, stdout);
+        clear(&head);
     }
     else if (argc == 2)
     {
@@ -139,11 +139,7 @@ int main(int argc, char const *argv[])
             while ((ret = getline(&line, &n, fin)) != -1)
             {
                 node = create(line);
-                // fprintf(stderr, "in main\n");
-                // fprintf(stderr, "%s", line);
                 insert(&head, node);
-                // show(head, stderr);
-                // fprintf(stderr, "in main\n");
                 line = NULL;
                 n = 0;
             }
@@ -156,12 +152,6 @@ int main(int argc, char const *argv[])
             }
             else if (errno == EINVAL)
             {
-                fprintf(stderr, "%s\n", argv[1]);
-                fprintf(stderr, "%s\n", argv[2]);
-                fprintf(stderr, "%s\n", p1 + 1);
-                fprintf(stderr, "%s\n", p2 + 1);
-                fprintf(stderr, "%s\n", line);
-                fprintf(stderr, "%s\n", head == NULL ? "NULL" : "not NULL");
                 fprintf(stderr, "Bad argument\n");
                 clear(&head);
                 fclose(fin);
@@ -171,7 +161,6 @@ int main(int argc, char const *argv[])
             {
                 if ((fout = fopen(argv[2], "w+")) != NULL)
                 {
-                    fprintf(stderr, "fout opened\n");
                     show(head, fout);
                     clear(&head);
                     fclose(fout);
