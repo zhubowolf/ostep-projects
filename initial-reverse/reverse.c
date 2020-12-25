@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <errno.h>
 
 typedef struct node
@@ -8,6 +9,8 @@ typedef struct node
     char *line;
     struct node *next;
 } Node;
+
+typedef Node *Head;
 
 Node *create(char *line)
 {
@@ -27,7 +30,7 @@ Node *create(char *line)
     return node;
 }
 
-void insert(Node **head, Node *node)
+void insert(Head *head, Node *node)
 {
     if (node == NULL)
     {
@@ -44,7 +47,7 @@ void insert(Node **head, Node *node)
     }
 }
 
-void show(Node *head, FILE *stream)
+void show(Head head, FILE *stream)
 {
     if (head == NULL || stream == NULL)
     {
@@ -58,7 +61,7 @@ void show(Node *head, FILE *stream)
     }
 }
 
-void clear(Node **node)
+void clear(Head *node)
 {
     while (*node != NULL)
     {
@@ -71,9 +74,28 @@ void clear(Node **node)
     }
 }
 
+bool is_same_file(const char *file1, const char *file2)
+{
+    char *p1 = strrchr(file1, '/');
+    char *p2 = strrchr(file2, '/');
+    if (p1 == NULL)
+    {
+        p1 = (char *)file1;
+    }
+    if (p2 == NULL)
+    {
+        p2 = (char *)file2;
+    }
+    if (strcmp(p1 + 1, p2 + 1) == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
 int main(int argc, char const *argv[])
 {
-    Node *head = NULL;
+    Head head = NULL;
     Node *node = NULL;
     char *line = NULL;
     size_t n = 0;
@@ -119,21 +141,12 @@ int main(int argc, char const *argv[])
     }
     else if (argc == 3)
     {
-        char *p1 = strrchr(argv[1], '/');
-        char *p2 = strrchr(argv[2], '/');
-        if (p1 == NULL)
-        {
-            p1 = (char *)argv[1];
-        }
-        if (p2 == NULL)
-        {
-            p2 = (char *)argv[2];
-        }
-        if (strcmp(p1 + 1, p2 + 1) == 0)
+        if (is_same_file(argv[1], argv[2]))
         {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
         }
+
         if ((fin = fopen(argv[1], "r")) != NULL)
         {
             while ((ret = getline(&line, &n, fin)) != -1)
